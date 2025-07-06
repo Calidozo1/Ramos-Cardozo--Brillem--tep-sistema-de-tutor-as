@@ -9,34 +9,19 @@ import {
 } from 'class-validator';
 
 export class CreateEstudianteDto {
-  // --- Campos de Usuario ---
+  @IsNotEmpty({ message: 'El nombre no puede estar vacío' })
   @IsString()
-  @IsNotEmpty()
   nombre: string;
 
-  @IsEmail()
   @IsNotEmpty()
+  @IsEmail()
   correo: string;
 
-  @IsString()
-  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+  @IsNotEmpty()
+  @MinLength(8)
   contrasena: string;
 
-  // --- Campos de Estudiante ---
-  @IsString()
   @IsNotEmpty()
+  @IsString()
   cedula: string;
-
-  @IsString()
-  @IsOptional()
-  carrera?: string;
-
-  @IsInt()
-  @IsPositive()
-  @IsOptional()
-  semestre?: number;
-
-  @IsString()
-  @IsOptional()
-  telefono?: string;
 }
