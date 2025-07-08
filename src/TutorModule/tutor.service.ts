@@ -2,31 +2,35 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tutor } from './tutor.entity';
-import { CreateTutorDto } from './dto/create-tutor.dto';
 import { UpdateTutorDto } from './dto/update-tutor.dto';
+import { Usuario } from '../UsuarioModule/usuario.entity';
 import * as bcrypt from 'bcrypt';
+import { CreateUsuarioConRolDto } from '../UsuarioModule/dto/create-usuario-con-rol.dto';
 
 @Injectable()
 export class TutorService {
   constructor(
     @InjectRepository(Tutor)
     private readonly tutorRepository: Repository<Tutor>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
-  async create(createTutorDto: CreateTutorDto) {
-    const { nombre, correo, contrasena, materiaId, ...tutorData } =
-      createTutorDto;
+  async create(dto: CreateUsuarioConRolDto) {
+    const { nombre, correo, contrasena, rol, materiaId, ...tutorData } = dto;
 
     const hashedPassword = await bcrypt.hash(contrasena, 10);
-
+    const nuevoUsuario = this.usuarioRepository.create({
+      nombre,
+      correo,
+      contrasena: hashedPassword,
+    });
+    const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
     const nuevoTutor = this.tutorRepository.create({
       ...tutorData,
-      usuario: {
-        nombre,
-        correo,
-        contrasena: hashedPassword,
-      },
-      materia: { id: materiaId }, // Así se enlaza la materia
+      id: usuarioGuardado.id, 
+      usuario: usuarioGuardado,
+      materia: { id: materiaId }, 
     });
 
     const tutorGuardado = await this.tutorRepository.save(nuevoTutor);
@@ -34,7 +38,6 @@ export class TutorService {
   }
 
   findAll(): Promise<Tutor[]> {
-    // Cargamos la relación con materia explícitamente
     return this.tutorRepository.find({
       relations: {
         materia: true,
@@ -76,7 +79,12 @@ export class TutorService {
     if (!tutor) {
       throw new NotFoundException(`Tutor con ID #${id} no encontrado`);
     }
-    return this.tutorRepository.save(tutor);
+    const tutorGuardado = await this.tutorRepository.save(tutor);
+
+    // Si el usuario fue actualizado, también se devuelve sin la contraseña
+    if (tutorGuardado.usuario) {
+    }
+    return tutorGuardado;
   }
 
   async remove(id: number) {

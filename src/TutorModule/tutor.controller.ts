@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
@@ -9,17 +8,11 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { TutorService } from './tutor.service';
-import { CreateTutorDto } from './dto/create-tutor.dto';
 import { UpdateTutorDto } from './dto/update-tutor.dto';
 
 @Controller('tutores')
 export class TutorController {
   constructor(private readonly tutorService: TutorService) {}
-
-  @Post()
-  create(@Body() createTutorDto: CreateTutorDto) {
-    return this.tutorService.create(createTutorDto);
-  }
 
   @Get()
   findAll() {

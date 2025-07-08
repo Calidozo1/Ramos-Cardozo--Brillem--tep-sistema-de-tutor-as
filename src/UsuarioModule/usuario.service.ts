@@ -1,38 +1,52 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuario } from './usuario.entity';
-import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import * as bcrypt from 'bcrypt';
+import { CreateUsuarioConRolDto } from './dto/create-usuario-con-rol.dto';
+import { Rol } from '../AuthModule/roles/rol.enum';
+import { EstudianteService } from '../EstudianteModule/estudiantes.service';
+import { TutorService } from '../TutorModule/tutor.service';
+import { CoordinadorService } from '../CoordinadorModule/coordinador.service';
 
 @Injectable()
 export class UsuarioService {
   constructor(
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
+    @Inject(forwardRef(() => EstudianteService)) private estudianteService: EstudianteService,
+    @Inject(forwardRef(() => TutorService)) private tutorService: TutorService,
+    @Inject(forwardRef(() => CoordinadorService)) private coordinadorService: CoordinadorService,
   ) {}
 
-  async create(
-    createUsuarioDto: CreateUsuarioDto,
-  ): Promise<Omit<Usuario, 'contrasena'>> {
-    const { contrasena, ...userData } = createUsuarioDto;
-    const hashedPassword = await bcrypt.hash(contrasena, 10);
+  async createConRol(dto: CreateUsuarioConRolDto) {
+    // Verificar si el correo ya existe
+    const existeUsuario = await this.usuarioRepository.findOneBy({ correo: dto.correo });
+    if (existeUsuario) {
+      throw new BadRequestException(`El correo ${dto.correo} ya está en uso.`);
+    }
 
-    const nuevoUsuario = this.usuarioRepository.create({
-      ...userData,
-      contrasena: hashedPassword,
-    });
-
-    const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { contrasena: _, ...resultado } = usuarioGuardado;
-    return resultado;
+    switch (dto.rol) {
+      case Rol.Estudiante:
+        return this.estudianteService.create(dto);
+      case Rol.Tutor:
+        return this.tutorService.create(dto);
+      case Rol.Coordinador:
+        return this.coordinadorService.create(dto);
+      default:
+        throw new BadRequestException('Rol no válido proporcionado.');
+    }
   }
 
   findAll(): Promise<Usuario[]> {
-    // Excluimos la contraseña de la respuesta por seguridad.
+    // No mostramos la contraseña del usuario.
     return this.usuarioRepository.find({
       select: ['id', 'nombre', 'correo', 'activo', 'fechaCreacion'],
     });
@@ -50,10 +64,11 @@ export class UsuarioService {
   }
 
   async findByEmail(correo: string): Promise<Usuario> {
-    // Usamos el QueryBuilder para poder seleccionar explícitamente la contraseña,
-    // que podría estar oculta por defecto en la entidad con `select: false`.
     const usuario = await this.usuarioRepository
       .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.estudiante', 'estudiante')
+      .leftJoinAndSelect('usuario.tutor', 'tutor')
+      .leftJoinAndSelect('usuario.coordinador', 'coordinador')
       .where('usuario.correo = :correo', { correo })
       .addSelect('usuario.contrasena') // Asegura que la contraseña sea seleccionada
       .getOne();

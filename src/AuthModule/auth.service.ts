@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UsuarioService } from '../UsuarioModule/usuario.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Rol } from './roles/rol.enum';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,17 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { email: user.correo, sub: user.id };
+    // Determinamos el rol usando el enum para mayor seguridad
+    let rol: Rol = Rol.Estudiante;
+    if (user.estudiante) {
+      rol = Rol.Estudiante;
+    } else if (user.tutor) {
+      rol = Rol.Tutor;
+    } else if (user.coordinador) {
+      rol = Rol.Coordinador;
+    }
+
+    const payload = { email: user.correo, sub: user.id, rol: rol };
     return {
       access_token: this.jwtService.sign(payload),
     };

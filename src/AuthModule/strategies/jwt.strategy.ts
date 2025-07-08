@@ -5,9 +5,13 @@ import { ConfigService } from '@nestjs/config';
 import { UsuarioService } from '../../UsuarioModule/usuario.service';
 import { Usuario } from '../../UsuarioModule/usuario.entity';
 
+// Definimos el tipo de usuario autenticado, sin su contraseña
+export type AuthenticatedUser = Omit<Usuario, 'contrasena'> & { rol: string };
+
 interface JwtPayload {
   email: string;
-  sub: number; // Este es el ID del usuario
+  sub: number;
+  rol: string;
 }
 
 @Injectable()
@@ -27,12 +31,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload): Promise<Omit<Usuario, 'contrasena'>> {
+  async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
     const user = await this.usuarioService.findOne(payload.sub);
 
     if (!user || !user.activo) {
       throw new UnauthorizedException('Token inválido o usuario inactivo.');
     }
-    return user; // NestJS adjuntará este objeto 'user' completo al request
+    // Adjuntamos el usuario y su rol al objeto request
+    return { ...user, rol: payload.rol } as AuthenticatedUser;
   }
 }
