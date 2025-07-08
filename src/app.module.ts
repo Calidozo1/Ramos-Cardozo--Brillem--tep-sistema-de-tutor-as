@@ -8,9 +8,6 @@ import { UsuarioModule } from './UsuarioModule/usuario.module';
 import { EstudianteModule } from './EstudianteModule/estudiante.module';
 import { TutorModule } from './TutorModule/tutor.module';
 import { CoordinadorModule } from './CoordinadorModule/coordinador.module';
-import { SolicitudModule } from './SolicitudModule/solicitud.module';
-import { SesionModule } from './SesionModule/sesion.module';
-import { CalificacionModule } from './CalificacionModule/calificacion.module';
 
 @Module({
   imports: [
@@ -33,9 +30,6 @@ import { CalificacionModule } from './CalificacionModule/calificacion.module';
     EstudianteModule,
     TutorModule,
     CoordinadorModule,
-    SolicitudModule,
-    SesionModule,
-    CalificacionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

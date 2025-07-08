@@ -2,30 +2,36 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Coordinador } from './coordinador.entity';
-import { CreateCoordinadorDto } from './dto/create-coordinador.dto';
 import { UpdateCoordinadorDto } from './dto/update-coordinador.dto';
+import { Usuario } from '../UsuarioModule/usuario.entity';
 import * as bcrypt from 'bcrypt';
+import { CreateUsuarioConRolDto } from '../UsuarioModule/dto/create-usuario-con-rol.dto';
 
 @Injectable()
 export class CoordinadorService {
   constructor(
     @InjectRepository(Coordinador)
     private readonly coordinadorRepository: Repository<Coordinador>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
-  async create(createCoordinadorDto: CreateCoordinadorDto) {
-    const { nombre, correo, contrasena, ...coordinadorData } =
-      createCoordinadorDto;
+  async create(dto: CreateUsuarioConRolDto) {
+    const { nombre, correo, contrasena, rol, ...coordinadorData } = dto;
 
+    // 1. Crear y guardar el Usuario primero
     const hashedPassword = await bcrypt.hash(contrasena, 10);
+    const nuevoUsuario = this.usuarioRepository.create({
+      nombre,
+      correo,
+      contrasena: hashedPassword,
+    });
+    const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
 
     const nuevoCoordinador = this.coordinadorRepository.create({
       ...coordinadorData,
-      usuario: {
-        nombre,
-        correo,
-        contrasena: hashedPassword,
-      },
+      id: usuarioGuardado.id, 
+      usuario: usuarioGuardado,
     });
 
     const coordinadorGuardado =
@@ -65,7 +71,12 @@ export class CoordinadorService {
     if (!coordinador) {
       throw new NotFoundException(`Coordinador con ID #${id} no encontrado`);
     }
-    return this.coordinadorRepository.save(coordinador);
+    const coordinadorGuardado = await this.coordinadorRepository.save(coordinador);
+
+    // Si el usuario fue actualizado, también se devuelve sin la contraseña
+    if (coordinadorGuardado.usuario) {
+    }
+    return coordinadorGuardado;
   }
 
   async remove(id: number) {

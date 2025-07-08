@@ -2,32 +2,40 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Estudiante } from './estudiante.entity';
-import { CreateEstudianteDto } from './dto/create-estudiante.dto';
 import { UpdateEstudianteDto } from './dto/update-estudiante.dto';
+import { Usuario } from '../UsuarioModule/usuario.entity';
 import * as bcrypt from 'bcrypt';
+import { CreateUsuarioConRolDto } from '../UsuarioModule/dto/create-usuario-con-rol.dto';
 
 @Injectable()
 export class EstudianteService {
   constructor(
     @InjectRepository(Estudiante)
     private readonly estudianteRepository: Repository<Estudiante>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
-  async create(createEstudianteDto: CreateEstudianteDto): Promise<Estudiante> {
-    const { nombre, correo, contrasena, ...estudianteData } = createEstudianteDto;
+  async create(dto: CreateUsuarioConRolDto): Promise<Estudiante> {
+    const { nombre, correo, contrasena, rol, ...estudianteData } = dto;
 
     const hashedPassword = await bcrypt.hash(contrasena, 10);
+    const nuevoUsuario = this.usuarioRepository.create({
+      nombre,
+      correo,
+      contrasena: hashedPassword,
+    });
+    const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
 
     const nuevoEstudiante = this.estudianteRepository.create({
       ...estudianteData,
-      usuario: {
-        nombre,
-        correo,
-        contrasena: hashedPassword,
-      },
+      id: usuarioGuardado.id, // Asignamos explícitamente el ID
+      usuario: usuarioGuardado,
     });
 
-    return this.estudianteRepository.save(nuevoEstudiante);
+    const estudianteGuardado = await this.estudianteRepository.save(nuevoEstudiante);
+
+    return estudianteGuardado;
   }
 
   findAll(): Promise<Estudiante[]> {
@@ -73,7 +81,6 @@ export class EstudianteService {
 
   async remove(id: number) {
     const estudiante = await this.findOne(id);
-    // `cascade: true` también se encargará de eliminar el usuario asociado.
     return this.estudianteRepository.remove(estudiante);
   }
 }
