@@ -24,9 +24,6 @@ export class Solicitud {
   @Column({ default: 'pendiente' })
   estado: string; // pendiente, aceptada, rechazada
 
-  @Column({ nullable: true })
-  tutor_id: number | null;
-
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   fecha_creacion: Date;
 
@@ -39,9 +36,9 @@ export class Solicitud {
   @JoinColumn({ name: 'materia_id' })
   materia: Materia;
 
-  @ManyToOne(() => Tutor, (tutor) => tutor.solicitudesAsignadas, { nullable: true })
-  @JoinColumn({ name: 'tutor_id' })
+  @ManyToOne(() => Tutor, (tutor: Tutor) => tutor.solicitudesAsignadas, { nullable: true })
   tutor: Tutor;
+
 
   @OneToOne(() => Sesion, (sesion) => sesion.solicitud)
   sesion: Sesion;
