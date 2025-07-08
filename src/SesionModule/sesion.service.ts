@@ -41,4 +41,49 @@ export class SesionService {
 
     return sesion;
   }
+   /// Filtro de sesiones por parametros
+  async filtrarSesiones(filtros: {tutorId?: number, materiaId?: number; fecha?: string; completada?:boolean; })
+  {
+    const query = this. sesionRepo
+      .createQueryBuilder('sesion')
+      .leftJoinAndSelect('sesion.tutor', 'tutor')
+      .leftJoinAndSelect('sesion.materia', 'materia')
+      .leftJoinAndSelect('sesion.estudiante','estudiante');
+
+    // si se envia un filtro, aplicamos
+    if(filtros.tutorId) {
+      query.andWhere('sesion.tutor_id = : tutorId', {tutorId: filtros.tutorId});
+    }
+
+    if(filtros.materiaId) {
+      query.andWhere('sesion.materia_id = : materiaId', {materiaId: filtros.materiaId});
+    }
+
+    if(filtros.fecha) {
+      query.andWhere('sesion.fecha =: fecha', {fecha: filtros.fecha});
+    }
+    if(filtros.completada != undefined) {
+      query.andWhere('sesion.completada = :completada', {completada: filtros. completada});
+    }
+    return query.getMany();
+  }
+  //estadisticas por tutor
+  async estadisticasPorTutor() {
+    return this.sesionRepo
+      .createQueryBuilder('sesion')
+        .select('sesion.tutor_id', 'tutor_id')  // agrupaos por id de tutor
+       .addSelect('COUNT(*)', 'total') // contar cuantas sesioens tiene
+      .groupBy('sesion.tutor_id')
+      .getRawMany();
+  }
+  // estadisticas por materia
+  async estadisticasPorMateria() {
+    return this.sesionRepo
+      .createQueryBuilder('sesion')
+      .select('sesion.materia_id', 'materias_id')
+      .addSelect('COUNT(*)', 'total')
+      .groupBy('sesion.materia_id')
+      .getRawMany();
+  }
+
 }
