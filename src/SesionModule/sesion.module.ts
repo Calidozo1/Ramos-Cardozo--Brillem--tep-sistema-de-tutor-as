@@ -9,5 +9,6 @@ import { Calificacion } from '../CalificacionModule/calificacion.entity';
   imports: [TypeOrmModule.forFeature([Sesion, Calificacion])],
   controllers: [SesionController],
   providers: [SesionService],
+  exports: [SesionService],
 })
 export class SesionModule {}

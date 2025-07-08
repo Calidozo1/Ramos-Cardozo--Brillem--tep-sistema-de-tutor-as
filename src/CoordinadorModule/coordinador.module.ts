@@ -6,11 +6,13 @@ import { Coordinador } from './coordinador.entity';
 import { UsuarioModule } from '../UsuarioModule/usuario.module';
 import { Usuario } from '../UsuarioModule/usuario.entity';
 import { CoordinadorPanelController } from './coordinador-panel.controller';
+import {SesionModule} from '../SesionModule/sesion.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Coordinador, Usuario]),
     forwardRef(() => UsuarioModule),
+    forwardRef(() => SesionModule),
   ],
   controllers: [CoordinadorController, CoordinadorPanelController],
   providers: [CoordinadorService],
