@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Sesion } from './sesion.entity';
@@ -57,24 +57,30 @@ export class SesionService {
       .leftJoinAndSelect('sesion.solicitud', 'solicitud');
 
     if (filtros.tutor_id) {
-      query.andWhere('sesion.tutor = :tutor_id', {
-        tutor_id: parseInt(filtros.tutor_id),
-      });
+      const tutorId = parseInt(filtros.tutor_id);
+      if (isNaN(tutorId)) {
+        throw new BadRequestException('Tutor o ID invalido');
+      }
+      query.andWhere('sesion.tutor_id = :tutorId', { tutorId });
     }
+
     if (filtros.materia_id) {
-      query.andWhere('sesion.materia = :materia_id', {
-        materia_id: parseInt(filtros.materia_id),
-      });
+      const materiaId = parseInt(filtros.materia_id);
+      if (isNaN(materiaId)) {
+        throw new BadRequestException('ID de materia invalido');
+      }
+      query.andWhere('sesion.materia = :materiaId', { materiaId });
     }
+
     if (filtros.fecha) {
       query.andWhere('DATE(sesion.fecha) = :fecha', { fecha: filtros.fecha });
     }
-    if (filtros.completada) {
-      query.andWhere('sesion.completada = :completada', {
-        completada: filtros.completada === 'true',
-      });
+
+    if (filtros.completada != undefined) {
+      const completada = filtros.completada === 'true';
+      query.andWhere('sesion.completada = :completada', { completada });
     }
-    return query.getMany();
+    return await query.getMany();
   }
 
   //estadisticas por tutor

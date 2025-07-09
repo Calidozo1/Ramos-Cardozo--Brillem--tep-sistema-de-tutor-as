@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  UseGuards,
-  UsePipes,
-  ValidationPipe,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, UsePipes, ValidationPipe, NotFoundException, } from '@nestjs/common';
 import { SesionService } from '../SesionModule/sesion.service';
 import { JwtAuthGuard } from '../AuthModule/guards/jwt-auth.guard';
 import { RolesGuard } from '../AuthModule/guards/roles.guard';
@@ -21,10 +13,15 @@ import { FiltroSesionesDto } from './dto/filtro-sesiones.dto';
 export class CoordinadorPanelController {
   constructor(private readonly sesionService: SesionService) {}
 
-//endpoints para consultar filtros
-  //se utiliza pipes
+  //endpoints para consultar filtros
+  //se utiliza validationPipe para validar los parámetros de consulta
   @Get('sesiones')
-  @UsePipes(new ValidationPipe({ transform: true }))
+  @UsePipes(
+    new ValidationPipe({
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  )
   async getSesiones(@Query() filtros: FiltroSesionesDto) {
     const sesiones = await this.sesionService.obtenerSesionesFiltradas(filtros);
 
@@ -35,12 +32,14 @@ export class CoordinadorPanelController {
     }
     return sesiones;
   }
-//cuantas sesiones hay por tutor
+
+  //cuantas sesiones hay por tutor
   @Get('estadisticas/tutores')
   getEstadisticasPorTutor() {
     return this.sesionService.estadisticasPorTutor();
   }
-// cuantaas sesiones hay por materia
+
+  // cuantaas sesiones hay por materia
   @Get('estadisticas/materias')
   getEstadisticasPorMateria() {
     return this.sesionService.estadisticasPorMateria();
