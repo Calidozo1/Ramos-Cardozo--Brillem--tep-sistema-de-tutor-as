@@ -8,6 +8,7 @@ import { UsuarioModule } from './UsuarioModule/usuario.module';
 import { EstudianteModule } from './EstudianteModule/estudiante.module';
 import { TutorModule } from './TutorModule/tutor.module';
 import { CoordinadorModule } from './CoordinadorModule/coordinador.module';
+import { AuthModule } from './AuthModule/auth.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CoordinadorModule } from './CoordinadorModule/coordinador.module';
     EstudianteModule,
     TutorModule,
     CoordinadorModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

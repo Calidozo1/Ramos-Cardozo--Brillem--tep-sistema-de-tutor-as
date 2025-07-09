@@ -1,6 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToOne,
+} from 'typeorm';
+import { Estudiante } from '../EstudianteModule/estudiante.entity';
+import { Tutor } from '../TutorModule/tutor.entity';
+import { Coordinador } from '../CoordinadorModule/coordinador.entity';
 
-@Entity('usuario')
+@Entity('usuarios') 
 export class Usuario {
   @PrimaryGeneratedColumn()
   id: number;
@@ -11,12 +20,21 @@ export class Usuario {
   @Column({ type: 'varchar', length: 100, unique: true, nullable: false })
   correo: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ select: false }) 
   contrasena: string;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ default: true })
   activo: boolean;
 
-  @CreateDateColumn({ name: 'fecha_creacion', type: 'timestamp' })
+  @CreateDateColumn()
   fechaCreacion: Date;
+
+  @OneToOne(() => Estudiante, (estudiante) => estudiante.usuario, { nullable: true })
+  estudiante: Estudiante;
+
+  @OneToOne(() => Tutor, (tutor) => tutor.usuario, { nullable: true })
+  tutor: Tutor;
+
+  @OneToOne(() => Coordinador, (coordinador) => coordinador.usuario, { nullable: true })
+  coordinador: Coordinador;
 }
