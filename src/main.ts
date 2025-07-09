@@ -16,7 +16,7 @@ async function bootstrap() {
     }),
   );
   //Activar el interceptor global
-  app.useGlobalInterceptors(new LoggingInterceptor(app.get('LogService')));
+  app.useGlobalInterceptors(new LoggingInterceptor(app.get(LogService)));
 
   const port = process.env.PORT ?? 3000;
 
