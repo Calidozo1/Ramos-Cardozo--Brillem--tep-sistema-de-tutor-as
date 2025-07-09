@@ -7,15 +7,14 @@ export class Materia {
   id: number;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
-  nombre: string; 
+  nombre: string;
 
   @Column({ type: 'varchar', length: 20, unique: true, nullable: false })
-  codigo: string; 
+  codigo: string;
 
-
-@OneToMany(() => Solicitud, (solicitud) => solicitud.materia)
+  @OneToMany(() => Solicitud, (solicitud) => solicitud.materia)
   solicitudes: Solicitud[];
 
-@OneToMany(() => Sesion, (sesion) => sesion.materia)
-sesiones: Sesion[];
+  @OneToMany(() => Sesion, (sesion) => sesion.materia)
+  sesiones: Sesion[];
 }

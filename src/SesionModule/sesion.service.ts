@@ -104,9 +104,12 @@ export class SesionService {
   async estadisticasPorTutor() {
     return this.sesionRepo
       .createQueryBuilder('sesion')
-      .select('sesion.tutor_id', 'tutor_id') // agrupaos por id de tutor
-      .addSelect('COUNT()', 'total') // contar cuantas sesioens tiene
-      .groupBy('sesion.tutor_id')
+      .select('tutor.id', 'tutor_id') // agrupaos por id de tutor
+      .addSelect('COUNT(sesion.id)', 'total') // contar cuantas sesioens tiene
+      .addSelect('usuario.nombre', 'tutor_nombre')
+      .leftJoin('sesion.tutor', 'tutor')
+      .leftJoin('tutor.usuario', 'usuario')
+      .groupBy('tutor.id, usuario.nombre')
       .getRawMany();
   }
 
@@ -114,9 +117,11 @@ export class SesionService {
   async estadisticasPorMateria() {
     return this.sesionRepo
       .createQueryBuilder('sesion')
-      .select('sesion.materia_id', 'materia_id')
-      .addSelect('COUNT()', 'total')
-      .groupBy('sesion.materia_id')
+      .select('materia.id', 'materia_id')
+      .addSelect('COUNT(sesion.id)', 'total')
+      .addSelect('materia.nombre', 'materia_nombre')
+      .leftJoin('sesion.materia', 'materia')
+      .groupBy('materia.id, materia.nombre')
       .getRawMany();
   }
 }
