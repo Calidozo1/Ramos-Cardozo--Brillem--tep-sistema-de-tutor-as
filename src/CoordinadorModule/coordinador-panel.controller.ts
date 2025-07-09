@@ -7,13 +7,13 @@ import { Rol } from '../AuthModule/roles/rol.enum';
 import { FiltroSesionesDto } from './dto/filtro-sesiones.dto';
 
 // disponible para usuarios con el rol coordinador
-@Controller('panel-coordinador')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Rol.Coordinador)
+@Controller('panel-coordinador')
 export class CoordinadorPanelController {
   constructor(private readonly sesionService: SesionService) {}
 
-  //endpoints para consultar filtros
+  //endpoints para consultar sesiones o filtro
   //se utiliza validationPipe para validar los parámetros de consulta
   @Get('sesiones')
   @UsePipes(
