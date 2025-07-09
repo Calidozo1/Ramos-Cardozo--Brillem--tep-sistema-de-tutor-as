@@ -41,4 +41,21 @@ export class SesionService {
 
     return sesion;
   }
+
+  async findByTutor(tutorId: number): Promise<Sesion[]> {
+    return this.sesionRepo.find({
+      where: { tutor: { id: tutorId } },
+      relations: ['materia', 'estudiante', 'solicitud'],
+      order: { fecha: 'ASC', hora: 'ASC' },
+    });
+  }
+
+  async findByEstudiante(estudianteId: number): Promise<Sesion[]> {
+    return this.sesionRepo.find({
+      where: { estudiante: { id: estudianteId } },
+      relations: ['materia', 'tutor', 'solicitud'],
+      order: { fecha: 'ASC', hora: 'ASC' },
+    });
+  }
+
 }

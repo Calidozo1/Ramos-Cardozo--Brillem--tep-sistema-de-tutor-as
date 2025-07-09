@@ -7,12 +7,14 @@ import { UsuarioModule } from '../UsuarioModule/usuario.module';
 import { Usuario } from '../UsuarioModule/usuario.entity';
 import { SolicitudModule } from '../SolicitudModule/solicitud.module';
 import { Sesion } from '../SesionModule/sesion.entity';
+import { MateriasModule } from '../MateriaModule/materias.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Tutor, Usuario, Sesion]),
     forwardRef(() => UsuarioModule),
     forwardRef(() => SolicitudModule),
+    MateriasModule,
   ],
   controllers: [TutorController],
   providers: [TutorService],

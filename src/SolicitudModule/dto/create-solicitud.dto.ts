@@ -1,19 +1,24 @@
-import { IsNotEmpty, IsDate, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsDate, IsString, IsNumber, Matches } from 'class-validator';
 
 export class CreateSolicitudDto {
-  @IsNumber({}, { message: 'El ID del estudiante debe ser un número' })
   @IsNotEmpty({ message: 'El campo estudiante_id no puede estar vacío' })
+  @IsNumber({}, { message: 'El ID del estudiante debe ser un número' })
   estudiante_id: number;
 
-  @IsNumber({}, { message: 'El ID de la materia debe ser un número' })
-  @IsNotEmpty({ message: 'El campo materia_id no puede estar vacío' })
-  materia_id: number;
+  @IsNotEmpty({ message: 'El nombre de la materia no puede estar vacío' })
+  @IsString({ message: 'El nombre de la materia debe ser texto' })
+  nombre_materia: string;
 
-  @IsDate({ message: 'La fecha solicitada debe ser una fecha válida' })
+
   @IsNotEmpty({ message: 'El campo fecha_solicitada no puede estar vacío' })
-  fecha_solicitada: Date;
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'La fecha debe tener el formato YYYY-MM-DD'
+  })
+  fecha_solicitada: string;
 
-  @IsString({ message: 'La hora debe ser una cadena de texto (ej. "10:00")' })
   @IsNotEmpty({ message: 'El campo hora_solicitada no puede estar vacío' })
+  @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
+    message: 'La hora debe ser una cadena de texto (ej. "10:00")'
+  })
   hora_solicitada: string;
 }

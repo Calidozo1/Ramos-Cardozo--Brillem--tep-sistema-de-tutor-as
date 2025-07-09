@@ -20,4 +20,17 @@ export class SesionController {
   async marcarCompletada(@Param('id') id: number) {
     return this.service.marcarCompletada(id);
   }
+
+  // Listar sesiones por tutor
+  @Get('tutor/:id')
+  async getByTutor(@Param('id') tutorId: number) {
+    return this.service.findByTutor(tutorId);
+  }
+
+  // Listar sesiones por estudiante
+  @Get('estudiante/:id')
+  async getByEstudiante(@Param('id') estudianteId: number) {
+    return this.service.findByEstudiante(estudianteId);
+  }
+
 }

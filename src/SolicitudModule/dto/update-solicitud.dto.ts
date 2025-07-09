@@ -1,10 +1,11 @@
-import { IsOptional, IsIn, IsNumber } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+} from 'class-validator';
+import { EstadoSolicitud } from '../estado-solicitud.enum';
 
 export class UpdateSolicitudDto {
-  @IsOptional()
-  @IsIn(['pendiente', 'aceptada', 'rechazada'])
-  estado?: string;
-
-  @IsOptional()
-  tutor_id?: number;
+  @IsEnum(EstadoSolicitud)
+  @IsNotEmpty()
+  estado: EstadoSolicitud;
 }

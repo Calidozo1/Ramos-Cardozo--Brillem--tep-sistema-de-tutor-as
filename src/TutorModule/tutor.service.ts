@@ -6,6 +6,8 @@ import { UpdateTutorDto } from './dto/update-tutor.dto';
 import { Usuario } from '../UsuarioModule/usuario.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateUsuarioConRolDto } from '../UsuarioModule/dto/create-usuario-con-rol.dto';
+import { AsignarMateriaDto } from './dto/asignar-materia.dto';
+import { MateriasService } from '../MateriaModule/materias.service';
 
 @Injectable()
 export class TutorService {
@@ -14,7 +16,9 @@ export class TutorService {
     private readonly tutorRepository: Repository<Tutor>,
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
-  ) {}
+    private readonly materiaService: MateriasService,
+  ) {
+  }
 
   async create(dto: CreateUsuarioConRolDto) {
     const { nombre, correo, contrasena, rol, materiaId, ...tutorData } = dto;
@@ -28,9 +32,9 @@ export class TutorService {
     const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
     const nuevoTutor = this.tutorRepository.create({
       ...tutorData,
-      id: usuarioGuardado.id, 
+      id: usuarioGuardado.id,
       usuario: usuarioGuardado,
-      materia: { id: materiaId }, 
+      materia: { id: materiaId },
     });
 
     const tutorGuardado = await this.tutorRepository.save(nuevoTutor);
@@ -74,6 +78,7 @@ export class TutorService {
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const tutor = await this.tutorRepository.preload({ id, ...payload });
 
     if (!tutor) {
@@ -91,4 +96,37 @@ export class TutorService {
     const tutor = await this.findOne(id);
     return this.tutorRepository.remove(tutor);
   }
+
+  async asignarMateria(asignarMateriaDto: AsignarMateriaDto) {
+    // Buscar tutor por cédula
+    const tutor = await this.tutorRepository.findOne({
+      where: { cedula: asignarMateriaDto.cedulaTutor },
+      relations: ['materia', 'usuario']
+    });
+
+    if (!tutor) {
+      throw new NotFoundException(
+        `Tutor con cédula ${asignarMateriaDto.cedulaTutor} no encontrado`
+      );
+    }
+
+    // Verificar que existe la materia
+    const materia = await this.materiaService.findOne(
+      asignarMateriaDto.materiaId,
+    );
+    if (!materia) {
+      throw new NotFoundException(
+        `Materia con ID ${asignarMateriaDto.materiaId} no encontrada`
+      );
+    }
+
+    // Asignar la materia al tutor
+    tutor.materia = materia;
+
+    // Guardar los cambios
+    return this.tutorRepository.save(tutor);
+  }
+
+
+
 }
