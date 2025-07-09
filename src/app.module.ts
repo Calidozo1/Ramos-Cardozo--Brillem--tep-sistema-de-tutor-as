@@ -12,6 +12,7 @@ import { AuthModule } from './AuthModule/auth.module';
 import { SolicitudModule } from './SolicitudModule/solicitud.module';
 import { SesionModule } from './SesionModule/sesion.module';
 import { CalificacionModule } from './CalificacionModule/calificacion.module';
+import { LogModule } from './LogModule/log.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { CalificacionModule } from './CalificacionModule/calificacion.module';
     SolicitudModule,
     SesionModule,
     CalificacionModule,
+    LogModule,
   ],
   controllers: [AppController],
   providers: [AppService],
