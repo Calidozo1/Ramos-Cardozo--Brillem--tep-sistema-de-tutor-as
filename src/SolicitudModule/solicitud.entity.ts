@@ -3,6 +3,7 @@ import { Estudiante } from '../EstudianteModule/estudiante.entity';
 import { Materia } from '../MateriaModule/materia.entity';
 import { Tutor } from '../TutorModule/tutor.entity';
 import { Sesion } from '../SesionModule/sesion.entity';
+import { EstadoSolicitud } from './estado-solicitud.enum';
 
 @Entity('solicitud')
 export class Solicitud {
@@ -21,8 +22,12 @@ export class Solicitud {
   @Column()
   hora_solicitada: string;
 
-  @Column({ default: 'pendiente' })
-  estado: string; // pendiente, aceptada, rechazada
+  @Column({
+    type: 'enum',
+    enum: EstadoSolicitud,
+    default: EstadoSolicitud.Pendiente,
+  })
+  estado: EstadoSolicitud;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   fecha_creacion: Date;

@@ -49,7 +49,6 @@ export class Sesion {
   materia: Materia;
 
   @OneToOne(() => Calificacion, (calificacion) => calificacion.sesion)
-  @JoinColumn({ name: 'sesion_id' })
   calificacion: Calificacion;
 }
 
