@@ -8,7 +8,11 @@ import {
   ParseIntPipe,
   UseGuards,
   Put,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
+
+import { Request } from 'express';
 import { TutorService } from './tutor.service';
 import { UpdateTutorDto } from './dto/update-tutor.dto';
 import { JwtAuthGuard } from '../AuthModule/guards/jwt-auth.guard';
@@ -25,18 +29,30 @@ export class TutorController {
   constructor(
     private readonly tutorService: TutorService,
     private readonly SolicitudService: SolicitudService,
-  ) {}
-
-  @Roles(Rol.Coordinador)
-  @Get()
-  findAll() {
-    return this.tutorService.findAll();
+  ) {
   }
 
-  @Roles(Rol.Coordinador)
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.tutorService.findOne(id);
+  @Get('solicitudes')
+  getSolicitudes(@Req() req: Request) {
+    const userId = (req.user as any).sub;
+    return this.SolicitudService.getSolicitudesByTutor(userId);
+  }
+
+
+
+  @Put('solicitudes/:solicitudId')
+  actualizarSolicitud(
+    @Param('solicitudId', ParseIntPipe) solicitudId: number,
+    @Body() updateDto: UpdateSolicitudDto,
+    @Req() req: any
+  ) {
+    const tutorId = (req.user as any).sub;
+
+    return this.SolicitudService.actualizarEstadoSolicitud(
+      solicitudId,
+      tutorId,
+      updateDto
+    );
   }
 
   @Patch(':id')
@@ -52,21 +68,16 @@ export class TutorController {
     return this.tutorService.remove(id);
   }
 
-  @Get(':id/solicitudes')
-  getSolicitudes(@Param('id') id: number) {
-    return this.SolicitudService.getSolicitudesByTutor(id);
+  @Roles(Rol.Coordinador)
+  @Get()
+  findAll() {
+    return this.tutorService.findAll();
   }
 
-  @Put(':tutorId/solicitudes/:solicitudId')
-  actualizarSolicitud(
-    @Param('tutorId') tutorId: number,
-    @Param('solicitudId') solicitudId: number,
-    @Body() updateDto: UpdateSolicitudDto
-  ) {
-    return this.SolicitudService.actualizarEstadoSolicitud(
-      solicitudId,
-      tutorId,
-      updateDto
-    );
+  @Roles(Rol.Coordinador)
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.tutorService.findOne(id);
   }
+
 }

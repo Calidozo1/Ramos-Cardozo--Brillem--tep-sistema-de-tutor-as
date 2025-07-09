@@ -7,6 +7,7 @@ import { UpdateSolicitudDto } from './dto/update-solicitud.dto';
 import { MateriasService } from '../MateriaModule/materias.service';
 import { Sesion } from '../SesionModule/sesion.entity';
 import { EstadoSolicitud } from './estado-solicitud.enum';
+import { SolicitudResponseDto } from './dto/solicitud-response.dto';
 
 @Injectable()
 export class SolicitudService {
@@ -25,31 +26,40 @@ export class SolicitudService {
     return this.solicitudRepo.find();
   }
 
-  async create(dto: CreateSolicitudDto): Promise<Solicitud> {
-    // Buscar la materia por nombre
+  async create(dto: CreateSolicitudDto): Promise<SolicitudResponseDto> {
     const materia = await this.materiasService.findByNombre(dto.nombre_materia);
     if (!materia) {
       throw new NotFoundException(`Materia con nombre ${dto.nombre_materia} no encontrada`);
     }
 
-    // Buscar un tutor que tenga esa materia
     const tutor = await this.solicitudRepo.manager
       .getRepository('Tutor')
       .findOne({
         where: { materia: { id: materia.id } },
-        relations: ['materia'],
+        relations: ['materia', 'usuario'], // importante si quieres el nombre
       });
 
-    // Crear la solicitud, asignando el tutor si se encontró
     const solicitud = this.solicitudRepo.create({
       estudiante_id: dto.estudiante_id,
       materia_id: materia.id,
       fecha_solicitada: dto.fecha_solicitada,
       hora_solicitada: dto.hora_solicitada,
-      tutor: tutor ?? undefined, // solo si existe un tutor
+      tutor: tutor ?? undefined,
     });
 
-    return this.solicitudRepo.save(solicitud);
+    const saved = await this.solicitudRepo.save(solicitud);
+
+    return {
+      id: saved.id,
+      estudiante_id: saved.estudiante_id,
+      materia_id: saved.materia_id,
+      fecha_solicitada: saved.fecha_solicitada,
+      hora_solicitada: saved.hora_solicitada,
+      estado: saved.estado,
+      fecha_creacion: saved.fecha_creacion,
+      tutor_id: tutor?.id,
+      tutor_nombre: tutor?.usuario?.nombre,
+    };
   }
 
 
@@ -82,15 +92,21 @@ export class SolicitudService {
   }
 
   // Obtener solicitudes asignadas a un tutor
-  async getSolicitudesByTutor(tutorId: number): Promise<Solicitud[]> {
+  async getSolicitudesByTutor (userId: number) {
+    const tutor = await this.solicitudRepo.manager
+      .getRepository('Tutor')
+      .findOne({
+        where: { id: userId },
+        relations: ['usuario'],
+      });
+
+    if (!tutor) {
+      throw new NotFoundException('No se encontró un tutor con este usuario');
+    }
+
     return this.solicitudRepo.find({
-      where: {
-        tutor: { id: tutorId },
-      },
-      relations: ['estudiante', 'materia', 'tutor'],
-      order: {
-        fecha_creacion: 'DESC'
-      }
+      where: { tutor: { id: tutor.id } },
+      relations: ['tutor', 'estudiante', 'materia'],
     });
   }
 

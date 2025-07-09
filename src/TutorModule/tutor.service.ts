@@ -7,7 +7,7 @@ import { Usuario } from '../UsuarioModule/usuario.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateUsuarioConRolDto } from '../UsuarioModule/dto/create-usuario-con-rol.dto';
 import { AsignarMateriaDto } from './dto/asignar-materia.dto';
-import { MateriasService } from '../MateriaModule/materias.service';
+import { Materia } from '../MateriaModule/materia.entity';
 
 @Injectable()
 export class TutorService {
@@ -16,7 +16,8 @@ export class TutorService {
     private readonly tutorRepository: Repository<Tutor>,
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
-    private readonly materiaService: MateriasService,
+    @InjectRepository(Materia)
+    private readonly materiaRepo: Repository<Materia>,
   ) {
   }
 
@@ -97,34 +98,36 @@ export class TutorService {
     return this.tutorRepository.remove(tutor);
   }
 
-  async asignarMateria(asignarMateriaDto: AsignarMateriaDto) {
-    // Buscar tutor por cédula
+  async asignarMateria(dto: AsignarMateriaDto) {
     const tutor = await this.tutorRepository.findOne({
-      where: { cedula: asignarMateriaDto.cedulaTutor },
-      relations: ['materia', 'usuario']
+      where: { cedula: dto.cedulaTutor },
+      relations: ['usuario'],
     });
 
     if (!tutor) {
-      throw new NotFoundException(
-        `Tutor con cédula ${asignarMateriaDto.cedulaTutor} no encontrado`
-      );
+      throw new NotFoundException('Tutor no encontrado');
     }
 
-    // Verificar que existe la materia
-    const materia = await this.materiaService.findOne(
-      asignarMateriaDto.materiaId,
-    );
+    const materia = await this.materiaRepo.findOneBy({ id: dto.materiaId });
+
     if (!materia) {
-      throw new NotFoundException(
-        `Materia con ID ${asignarMateriaDto.materiaId} no encontrada`
-      );
+      throw new NotFoundException('Materia no encontrada');
     }
 
-    // Asignar la materia al tutor
     tutor.materia = materia;
+    await this.tutorRepository.save(tutor);
 
-    // Guardar los cambios
-    return this.tutorRepository.save(tutor);
+    return {
+      mensaje: 'Materia asignada correctamente al tutor',
+      tutor: {
+        nombre: tutor.usuario.nombre,
+        cedula: tutor.cedula,
+      },
+      materia: {
+        id: materia.id,
+        nombre: materia.nombre,
+      },
+    };
   }
 
 
