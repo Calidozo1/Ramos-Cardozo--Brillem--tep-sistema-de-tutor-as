@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Body, Param, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Req } from '@nestjs/common';
 import { SesionService } from './sesion.service';
 import { CreateSesionDto } from './dto/create-sesion.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../AuthModule/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('sesiones')
 export class SesionController {
   constructor(private readonly service: SesionService) {}
@@ -22,8 +25,9 @@ export class SesionController {
   }
 
   // Listar sesiones por tutor
-  @Get('tutor/:id')
-  async getByTutor(@Param('id') tutorId: number) {
+  @Get('tutor')
+  async getByTutor(@Req() req: any) {
+    const tutorId = (req.user as any).sub;
     return this.service.findByTutor(tutorId);
   }
 
