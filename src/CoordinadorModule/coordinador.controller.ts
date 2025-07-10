@@ -5,14 +5,19 @@ import {
   Patch,
   Param,
   Delete,
-  ParseIntPipe,
+  ParseIntPipe, Post,
 } from '@nestjs/common';
 import { CoordinadorService } from './coordinador.service';
 import { UpdateCoordinadorDto } from './dto/update-coordinador.dto';
+import { AsignarMateriaDto } from '../TutorModule/dto/asignar-materia.dto';
+import { TutorService } from '../TutorModule/tutor.service'
 
 @Controller('coordinadores')
 export class CoordinadorController {
-  constructor(private readonly coordinadorService: CoordinadorService) {}
+  constructor(
+    private readonly coordinadorService: CoordinadorService,
+    private readonly tutorService: TutorService,
+  ) {}
 
   @Get()
   findAll() {
@@ -25,7 +30,10 @@ export class CoordinadorController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateCoordinadorDto: UpdateCoordinadorDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateCoordinadorDto: UpdateCoordinadorDto,
+  ) {
     return this.coordinadorService.update(id, updateCoordinadorDto);
   }
 
@@ -33,4 +41,11 @@ export class CoordinadorController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.coordinadorService.remove(id);
   }
+  
+@Post('asignar-materia')  // Este es el nuevo endpoint
+asignarMateriaTutor(@Body() asignarMateriaDto: AsignarMateriaDto) {
+    return this.tutorService.asignarMateria(asignarMateriaDto);
 }
+}
+
+

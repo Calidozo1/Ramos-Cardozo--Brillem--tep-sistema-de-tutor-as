@@ -1,6 +1,9 @@
-import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { Usuario } from '../UsuarioModule/usuario.entity';
 import { Materia } from '../MateriaModule/materia.entity';
+import { Solicitud } from '../SolicitudModule/solicitud.entity';
+import { Calificacion } from '../CalificacionModule/calificacion.entity';
+import { Sesion } from '../SesionModule/sesion.entity';
 
 @Entity('tutor')
 export class Tutor {
@@ -26,4 +29,15 @@ export class Tutor {
   @ManyToOne(() => Materia)
   @JoinColumn({ name: 'materia_id' })
   materia: Materia;
+
+
+  @OneToMany(() => Solicitud, (solicitud) => solicitud.tutor)
+  solicitudesAsignadas: Solicitud[];
+
+  @OneToMany(() => Sesion, (sesion) => sesion.tutor)
+  sesionesDictadas: Sesion[];
+
+  @OneToMany(() => Calificacion, (calificacion) => calificacion.tutor)
+  calificacionesRecibidas: Calificacion[];
+
 }

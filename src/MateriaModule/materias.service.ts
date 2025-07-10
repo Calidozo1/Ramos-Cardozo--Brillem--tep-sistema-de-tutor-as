@@ -1,5 +1,5 @@
 // src/materias/materias.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Materia } from './materia.entity';
@@ -23,5 +23,24 @@ export class MateriasService {
     return this.materiaRepository.find();
   }
 
-  // Aquí irían otros métodos como findOne, update, remove...
+
+  async findByNombre(nombre: string): Promise<Materia> {
+    const materia = await this.materiaRepository.findOne({
+      where: { nombre }
+    });
+    if (!materia) {
+      throw new NotFoundException(`No se encontró la materia: ${nombre}`);
+    }
+    return materia;
+  }
+
+  async findOne(id: number): Promise<Materia> {
+    const materia = await this.materiaRepository.findOne({ where: { id } });
+    if (!materia) {
+      throw new NotFoundException(`Materia con ID ${id} no encontrada`);
+    }
+    return materia;
+  }
+
+
 }

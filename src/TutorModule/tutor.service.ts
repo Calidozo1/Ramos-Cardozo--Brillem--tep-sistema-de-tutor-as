@@ -6,6 +6,8 @@ import { UpdateTutorDto } from './dto/update-tutor.dto';
 import { Usuario } from '../UsuarioModule/usuario.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateUsuarioConRolDto } from '../UsuarioModule/dto/create-usuario-con-rol.dto';
+import { AsignarMateriaDto } from './dto/asignar-materia.dto';
+import { Materia } from '../MateriaModule/materia.entity';
 
 @Injectable()
 export class TutorService {
@@ -14,7 +16,10 @@ export class TutorService {
     private readonly tutorRepository: Repository<Tutor>,
     @InjectRepository(Usuario)
     private readonly usuarioRepository: Repository<Usuario>,
-  ) {}
+    @InjectRepository(Materia)
+    private readonly materiaRepo: Repository<Materia>,
+  ) {
+  }
 
   async create(dto: CreateUsuarioConRolDto) {
     const { nombre, correo, contrasena, rol, materiaId, ...tutorData } = dto;
@@ -28,9 +33,9 @@ export class TutorService {
     const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
     const nuevoTutor = this.tutorRepository.create({
       ...tutorData,
-      id: usuarioGuardado.id, 
+      id: usuarioGuardado.id,
       usuario: usuarioGuardado,
-      materia: { id: materiaId }, 
+      materia: { id: materiaId },
     });
 
     const tutorGuardado = await this.tutorRepository.save(nuevoTutor);
@@ -74,6 +79,7 @@ export class TutorService {
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const tutor = await this.tutorRepository.preload({ id, ...payload });
 
     if (!tutor) {
@@ -91,4 +97,39 @@ export class TutorService {
     const tutor = await this.findOne(id);
     return this.tutorRepository.remove(tutor);
   }
+
+  async asignarMateria(dto: AsignarMateriaDto) {
+    const tutor = await this.tutorRepository.findOne({
+      where: { cedula: dto.cedulaTutor },
+      relations: ['usuario'],
+    });
+
+    if (!tutor) {
+      throw new NotFoundException('Tutor no encontrado');
+    }
+
+    const materia = await this.materiaRepo.findOneBy({ id: dto.materiaId });
+
+    if (!materia) {
+      throw new NotFoundException('Materia no encontrada');
+    }
+
+    tutor.materia = materia;
+    await this.tutorRepository.save(tutor);
+
+    return {
+      mensaje: 'Materia asignada correctamente al tutor',
+      tutor: {
+        nombre: tutor.usuario.nombre,
+        cedula: tutor.cedula,
+      },
+      materia: {
+        id: materia.id,
+        nombre: materia.nombre,
+      },
+    };
+  }
+
+
+
 }

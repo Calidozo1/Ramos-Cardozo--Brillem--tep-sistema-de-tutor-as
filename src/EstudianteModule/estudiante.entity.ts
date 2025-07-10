@@ -1,5 +1,8 @@
-import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Usuario } from '../UsuarioModule/usuario.entity';
+import { Solicitud } from '../SolicitudModule/solicitud.entity';
+import { Sesion } from '../SesionModule/sesion.entity';
+import { Calificacion } from '../CalificacionModule/calificacion.entity';
 
 @Entity('estudiante') // El nombre de la tabla en la base de datos [cite: 5]
 export class Estudiante {
@@ -20,5 +23,17 @@ export class Estudiante {
   semestre: number;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  telefono: string; 
+  telefono: string;
+
+
+// Relación inversa: Un estudiante puede tener muchas solicitudes
+  @OneToMany(() => Solicitud, (solicitud) => solicitud.estudiante)
+  solicitudes: Solicitud[];
+
+  @OneToMany(() => Sesion, (sesion) => sesion.estudiante)
+  sesionesAsistidas: Sesion[];
+
+  @OneToMany(() => Calificacion, (calificacion) => calificacion.estudiante)
+  calificaciones: Calificacion[];
+
 }
