@@ -38,6 +38,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Token inválido o usuario inactivo.');
     }
     // Adjuntamos el usuario y su rol al objeto request
-    return { ...user, rol: payload.rol } as AuthenticatedUser;
+    return { ...user, rol: payload.rol, sub: payload.sub } as AuthenticatedUser;
   }
 }
