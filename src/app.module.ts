@@ -3,10 +3,23 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { MateriasModule } from './MateriaModule/materias.module';
+import { UsuarioModule } from './UsuarioModule/usuario.module';
+import { EstudianteModule } from './EstudianteModule/estudiante.module';
+import { TutorModule } from './TutorModule/tutor.module';
+import { CoordinadorModule } from './CoordinadorModule/coordinador.module';
+import { AuthModule } from './AuthModule/auth.module';
+import { SolicitudModule } from './SolicitudModule/solicitud.module';
+import { SesionModule } from './SesionModule/sesion.module';
+import { CalificacionModule } from './CalificacionModule/calificacion.module';
+import { LogModule } from './LogModule/log.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
@@ -17,6 +30,16 @@ import { AppService } from './app.service';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    MateriasModule,
+    UsuarioModule,
+    EstudianteModule,
+    TutorModule,
+    CoordinadorModule,
+    AuthModule,
+    SolicitudModule,
+    SesionModule,
+    CalificacionModule,
+    LogModule,
   ],
   controllers: [AppController],
   providers: [AppService],
