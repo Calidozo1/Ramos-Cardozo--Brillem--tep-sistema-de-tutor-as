@@ -8,7 +8,11 @@ export class CreateCalificacionDto {
   @IsNumber()
   @IsNotEmpty()
   sesion_id: number;
-  
+
+  @IsInt()
+  @IsNotEmpty()
+  estudiante_id: number;
+
   @IsNumber()
   @IsNotEmpty()
   calificacion: number;
