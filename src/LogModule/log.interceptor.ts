@@ -1,4 +1,9 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor, } from '@nestjs/common';
+import {
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  NestInterceptor,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LogService } from './log.service';
@@ -13,42 +18,51 @@ interface AuthenticatedUser {
 //lo que registrará automáticamente
 export class LoggingInterceptor implements NestInterceptor {
   constructor(private readonly logService: LogService) {}
+
   //intercepta cada petición
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
     const rawUser = request.user;
-
-    // Validar que el usuario esté autenticado y tenga id y rol
-    if (!rawUser || typeof rawUser !== 'object') {
-      return next.handle();
-    }
-
-    const user = rawUser as AuthenticatedUser;
-
-    if (!user.id || !user.rol) { // si no hay usuario autenticado, no se registra
-      return next.handle();
-    }
-    //se obtiene metodo y ruta  de la petición
     const metodo = request.method;
     const ruta = request.originalUrl;
-    const usuarioId = user.id;
-    const rolStr = user.rol.charAt(0).toUpperCase() + user.rol.slice(1);
-    // Coordinador / Tutor / Estudiante
 
-    //la descripcion de la accion que hace el user
-    const descripcionAccion = this.getDescripcionAccion(metodo, ruta, rolStr);
+    let descripcionAccion = '';
+    let usuarioId = 0;
 
-    // Registrar antes de finalizar la petición
+    if (rawUser && typeof rawUser === 'object') {
+      const user = rawUser as AuthenticatedUser;
+
+      if (user.id && user.rol) {
+        usuarioId = user.id;
+        const rolStr = user.rol.charAt(0).toUpperCase() + user.rol.slice(1);
+        descripcionAccion = this.getDescripcionAccion(metodo, ruta, rolStr);
+      }
+    }
+
+    if (!descripcionAccion && metodo === 'POST' && ruta === '/auth/login') {
+      descripcionAccion = 'Un usuario intentó iniciar sesión';
+    }
+
     return next.handle().pipe(
       tap({
         next: () => {
-          this.logService.registrar(usuarioId, descripcionAccion, ruta, metodo);
+          if (descripcionAccion) {
+            this.logService
+              .registrar(usuarioId, descripcionAccion, ruta, metodo)
+              .catch((error) => {
+                console.error('Error al registrar log:', error);
+              });
+          }
         },
       }),
     );
   }
 
-  private getDescripcionAccion(metodo: string, ruta: string, rol: string): string {
+  private getDescripcionAccion(
+    metodo: string,
+    ruta: string,
+    rol: string,
+  ): string {
     const descriptions: Record<string, string> = {
       // Panel del coordinador
       'GET-/panel-coordinador/sesiones': `${rol} listó todas las sesiones`,
@@ -113,7 +127,8 @@ export class LoggingInterceptor implements NestInterceptor {
       'POST-/auth/login': `${rol} inició sesión en el sistema`,
     };
     // sino encuentrar la ruta, se devuelve
-    return descriptions[`${metodo}-${ruta}`] ||
-      `${rol} realizó "${metodo} ${ruta}"`;
+    return (
+      descriptions[`${metodo}-${ruta}`] || `${rol} realizó "${metodo} ${ruta}"`
+    );
   }
 }
