@@ -47,11 +47,6 @@ export class CreateUsuarioConRolDto {
   semestre?: number;
 
   @ValidateIf((o) => o.rol === Rol.Tutor)
-  @IsInt()
-  @IsNotEmpty({ message: 'El materiaId es obligatorio para el rol de tutor.' })
-  materiaId?: number;
-  
-  @ValidateIf((o) => o.rol === Rol.Tutor)
   @IsString()
   @IsOptional()
   profesion?: string;
@@ -66,3 +61,4 @@ export class CreateUsuarioConRolDto {
   @IsNotEmpty({ message: 'El departamento es obligatorio para el rol de coordinador.' })
   departamento?: string;
 }
+

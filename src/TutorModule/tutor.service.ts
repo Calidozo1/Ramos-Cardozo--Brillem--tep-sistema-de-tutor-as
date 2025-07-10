@@ -22,7 +22,7 @@ export class TutorService {
   }
 
   async create(dto: CreateUsuarioConRolDto) {
-    const { nombre, correo, contrasena, rol, materiaId, ...tutorData } = dto;
+    const { nombre, correo, contrasena, rol, ...tutorData } = dto;
 
     const hashedPassword = await bcrypt.hash(contrasena, 10);
     const nuevoUsuario = this.usuarioRepository.create({
@@ -35,7 +35,6 @@ export class TutorService {
       ...tutorData,
       id: usuarioGuardado.id,
       usuario: usuarioGuardado,
-      materia: { id: materiaId },
     });
 
     const tutorGuardado = await this.tutorRepository.save(nuevoTutor);
