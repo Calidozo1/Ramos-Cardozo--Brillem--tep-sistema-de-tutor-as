@@ -107,7 +107,7 @@ export class LoggingInterceptor implements NestInterceptor {
       'GET-/solicitudes': `${rol} listó todas las solicitudes`,
       'POST-/solicitudes': `${rol} creó una nueva solicitud`,
       'GET-/solicitudes/:id': `${rol} consultó detalles de una solicitud`,
-      'PATCH-/solicitudes/:id': `${rol} actualizó una solicitud`,
+      'PUT-/solicitudes/:id': `${rol} actualizó una solicitud`,
       'DELETE-/solicitudes/:id': `${rol} eliminó una solicitud`,
       'GET-/solicitudes/tutor/:id': `${rol} consultó solicitudes asignadas a un tutor`,
       // Calificaciones
